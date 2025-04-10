@@ -11,7 +11,7 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "request-movie-overseerr",
+      "name": "media-browser",
       "title": "Request Movie Overseerr",
       "subtitle": "Request a movie on the Overseerr instance",
       "description": "Using overseerr instance api search and request movies/shows and allow adding a request",

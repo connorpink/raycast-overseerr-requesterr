@@ -1,9 +1,10 @@
 import { ActionPanel, Action, List, getPreferenceValues } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import { useState } from "react";
-import { MovieDetail } from "./components/MovieDetail";
-import { RequestForm } from "./components/RequestForm";
-import { MovieResult, MediaInfo } from "./types";
+import { MediaDetail } from "./components/MediaDetail";
+import { MediaRequestForm } from "./components/MediaRequestForm";
+import { MediaResult, MediaInfo } from "./types";
+import { getMediaStatusBadge, normalizeApiUrl } from "./utils";
 
 interface Preferences {
   apiUrl: string;
@@ -14,17 +15,19 @@ interface SearchResponse {
   page: number;
   totalPages: number;
   totalResults: number;
-  results: MovieResult[];
+  results: MediaResult[];
 }
 
-export default function Command() {
+export default function MediaBrowser() {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
   const [searchText, setSearchText] = useState("");
 
+  const baseApiUrl = normalizeApiUrl(apiUrl);
+
   // Determine which URL to use based on searchText
   const fetchUrl = searchText
-    ? `${apiUrl.replace(/\/$/, "")}/search?query=${encodeURIComponent(searchText)}&page=1&language=en`
-    : `${apiUrl.replace(/\/$/, "")}/discover/movies?page=1&language=en&sortBy=popularity.desc`;
+    ? `${baseApiUrl}/search?query=${encodeURIComponent(searchText)}&page=1&language=en`
+    : `${baseApiUrl}/discover/movies?page=1&language=en&sortBy=popularity.desc`;
 
   const { isLoading, data } = useFetch<SearchResponse>(fetchUrl, {
     headers: {
@@ -48,51 +51,31 @@ export default function Command() {
         title={searchText ? "Search Results" : "Discover Movies"}
         subtitle={data?.results?.length.toString() ?? "0"}
       >
-        {data?.results?.map((movie) => <MovieListItem key={movie.id} movie={movie} />) || []}
+        {data?.results?.map((media) => <MediaListItem key={media.id} media={media} />) || []}
       </List.Section>
     </List>
   );
 }
 
-function MovieListItem({ movie }: { movie: MovieResult }) {
-  const title = movie.title || movie.name || "Unknown Title";
-  const releaseDate = movie.releaseDate || movie.firstAirDate || "";
+function MediaListItem({ media }: { media: MediaResult }) {
+  const title = media.title || media.name || "Unknown Title";
+  const releaseDate = media.releaseDate || media.firstAirDate || "";
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   // Format vote average with null check
-  const rating = typeof movie.voteAverage === "number" ? `⭐ ${movie.voteAverage.toFixed(1)}` : "";
+  const rating = typeof media.voteAverage === "number" ? `⭐ ${media.voteAverage.toFixed(1)}` : "";
 
   // Create poster URLs for different sizes
-  const posterUrlSmall = movie.posterPath ? `https://image.tmdb.org/t/p/w154${movie.posterPath}` : null;
+  const posterUrlSmall = media.posterPath ? `https://image.tmdb.org/t/p/w154${media.posterPath}` : null;
 
-  const posterUrlLarge = movie.posterPath ? `https://image.tmdb.org/t/p/w342${movie.posterPath}` : null;
+  const posterUrlLarge = media.posterPath ? `https://image.tmdb.org/t/p/w342${media.posterPath}` : null;
 
-  // Update the getStatusIndicator function
-  const getStatusIndicator = (mediaInfo?: MediaInfo) => {
-    if (!mediaInfo) return "";
-
-    // Handle all status cases
-    switch (mediaInfo.status) {
-      case 1:
-        return "❓"; // Unknown
-      case 2:
-        return "📝"; // Requested
-      case 3:
-        return "⏳"; // Pending
-      case 4:
-        return "⚡"; // Partially Available
-      case 5:
-        return "✅"; // Available
-      default:
-        return "";
-    }
-  };
-
-  const requestStatus = getStatusIndicator(movie.mediaInfo);
+  // Get media status badge
+  const requestStatus = getMediaStatusBadge(media.mediaInfo?.status);
 
   // Get media type display
   const mediaTypeDisplay = (() => {
-    switch (movie.mediaType?.toLowerCase()) {
+    switch (media.mediaType?.toLowerCase()) {
       case "movie":
         return "🎬 Movie";
       case "tv":
@@ -100,7 +83,7 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
       case "person":
         return "👤 Person";
       default:
-        return movie.mediaType ? `📌 ${movie.mediaType}` : "Unknown";
+        return media.mediaType ? `📌 ${media.mediaType}` : "Unknown";
     }
   })();
 
@@ -108,7 +91,7 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
     { text: year ? year.toString() : "" },
     { text: rating },
     { text: mediaTypeDisplay },
-    { text: requestStatus },
+    { text: requestStatus.icon },
   ].filter((acc) => acc.text !== "");
 
   // Add this function to check if media is already requested or available
@@ -121,7 +104,7 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
     <List.Item
       icon={{ source: posterUrlSmall || "" }}
       title={title}
-      subtitle={movie.overview || "No overview available"}
+      subtitle={media.overview || "No overview available"}
       accessories={accessories}
       detail={
         <List.Item.Detail
@@ -133,13 +116,13 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
               <List.Item.Detail.Metadata.Label title="Release Year" text={year.toString()} />
               <List.Item.Detail.Metadata.Label title="Rating" text={rating} />
               <List.Item.Detail.Metadata.Label title="Media Type" text={mediaTypeDisplay} />
-              <List.Item.Detail.Metadata.Label title="Status" text={requestStatus} />
+              <List.Item.Detail.Metadata.Label title="Status" text={requestStatus.icon} />
               <List.Item.Detail.Metadata.Label
                 title="Popularity"
-                text={typeof movie.popularity === "number" ? movie.popularity.toFixed(1) : "N/A"}
+                text={typeof media.popularity === "number" ? media.popularity.toFixed(1) : "N/A"}
               />
               <List.Item.Detail.Metadata.Separator />
-              <List.Item.Detail.Metadata.Label title="Overview" text={movie.overview || "No overview available"} />
+              <List.Item.Detail.Metadata.Label title="Overview" text={media.overview || "No overview available"} />
             </List.Item.Detail.Metadata>
           }
         />
@@ -149,13 +132,13 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
           <ActionPanel.Section>
             <Action.Push
               title="View Details"
-              target={<MovieDetail movie={movie} />}
+              target={<MediaDetail media={media} />}
               shortcut={{ modifiers: ["cmd"], key: "return" }}
             />
-            {!isMediaRequested(movie.mediaInfo) && (
+            {!isMediaRequested(media.mediaInfo) && (
               <Action.Push
                 title="Request Media"
-                target={<RequestForm movie={movie} />}
+                target={<MediaRequestForm media={media} />}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "return" }}
               />
             )}

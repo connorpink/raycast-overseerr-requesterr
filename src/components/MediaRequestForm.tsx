@@ -1,19 +1,21 @@
 import { Form, ActionPanel, Action, showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
-import { MovieResult, RadarrSettings, ServerTestResponse } from "../types";
+import { MediaResult, RadarrSettings, ServerTestResponse, TVShowSeason, TVShowDetails } from "../types";
 
 interface Preferences {
   apiUrl: string;
   apiKey: string;
 }
 
-export function RequestForm({ movie }: { movie: MovieResult }) {
+export function MediaRequestForm({ media }: { media: MediaResult }) {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
   const [settings, setSettings] = useState<RadarrSettings[]>([]);
   const [serverDetails, setServerDetails] = useState<ServerTestResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [seasons, setSeasons] = useState<TVShowSeason[]>([]);
+  const [selectedSeasons, setSelectedSeasons] = useState<number[]>([]);
 
-  const settingsEndpoint = movie.mediaType === "movie" ? "radarr" : "sonarr";
+  const settingsEndpoint = media.mediaType === "movie" ? "radarr" : "sonarr";
 
   useEffect(() => {
     async function fetchSettings() {
@@ -65,40 +67,90 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
     fetchSettings();
   }, [apiUrl, apiKey, settingsEndpoint]);
 
+  useEffect(() => {
+    async function fetchTVShowDetails() {
+      if (media.mediaType !== "tv") return;
+
+      try {
+        const response = await fetch(`${apiUrl}/tv/${media.id}`, {
+          headers: {
+            "X-Api-Key": apiKey,
+            accept: "application/json",
+          },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch TV show details");
+        const data: TVShowDetails = await response.json();
+        setSeasons(data.seasons);
+      } catch (err) {
+        console.error("TV show details fetch error:", err);
+      }
+    }
+
+    fetchTVShowDetails();
+  }, [media.id, media.mediaType, apiUrl, apiKey]);
+
   async function handleSubmit(values: { profile: string; rootFolder: string; tag: string }) {
     try {
+      console.log("Submitting request with data:", {
+        mediaType: media.mediaType,
+        mediaId: media.id,
+        serverId: settings[0]?.id,
+        profileId: parseInt(values.profile),
+        rootFolder: values.rootFolder,
+        tags: values.tag ? [values.tag] : [],
+        seasons: media.mediaType === "tv" ? (selectedSeasons.length > 0 ? selectedSeasons : "all") : undefined,
+      });
+
+      const requestBody = {
+        mediaType: media.mediaType === "tv" ? "tv" : "movie",
+        mediaId: media.id,
+        serverId: settings[0]?.id,
+        profileId: parseInt(values.profile),
+        rootFolder: values.rootFolder,
+        tags: values.tag ? [values.tag] : [],
+        ...(media.mediaType === "tv" && {
+          seasons: selectedSeasons.length > 0 ? selectedSeasons : "all",
+        }),
+      };
+
       const response = await fetch(`${apiUrl}/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-Api-Key": apiKey,
         },
-        body: JSON.stringify({
-          mediaType: movie.mediaType,
-          mediaId: movie.id,
-          serverId: settings[0]?.id, // Use first server automatically
-          profileId: parseInt(values.profile),
-          rootFolder: values.rootFolder,
-          tags: values.tag ? [values.tag] : [],
-        }),
+        body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) throw new Error("Failed to submit request");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error("Server response:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+        });
+        throw new Error(`Failed to submit request: ${response.statusText}`);
+      }
 
       await showToast({
         style: Toast.Style.Success,
         title: "Request Submitted",
-        message: `Successfully requested ${movie.title || movie.name}`,
+        message: `Successfully requested ${media.title || media.name}`,
       });
     } catch (err) {
       console.error("Request submission error:", err);
       await showToast({
         style: Toast.Style.Failure,
         title: "Error",
-        message: "Failed to submit request",
+        message: `Failed to submit request: ${err.message}`,
       });
     }
   }
+
+  const handleSeasonChange = (seasonNumbers: string[]) => {
+    setSelectedSeasons(seasonNumbers.map((n) => parseInt(n)));
+  };
 
   if (isLoading) {
     return <Form isLoading={true} />;
@@ -123,6 +175,23 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
           <Form.Dropdown.Item key={folder.id} value={folder.path} title={folder.path} />
         ))}
       </Form.Dropdown>
+
+      {media.mediaType === "tv" && seasons.length > 0 && (
+        <Form.TagPicker
+          id="seasons"
+          title="Seasons"
+          placeholder="Select seasons (leave empty for all)"
+          onChange={handleSeasonChange}
+        >
+          {seasons.map((season) => (
+            <Form.TagPicker.Item
+              key={season.seasonNumber}
+              value={season.seasonNumber.toString()}
+              title={`${season.name} (${season.episodeCount} episodes)`}
+            />
+          ))}
+        </Form.TagPicker>
+      )}
 
       <Form.TextField id="tag" title="Tag" placeholder="Add an optional tag for this request..." />
     </Form>

@@ -1,4 +1,5 @@
-export interface MovieResult {
+// Rename MovieResult to MediaResult
+export interface MediaResult {
   id: number;
   mediaType: string;
   popularity: number;
@@ -19,6 +20,21 @@ export interface MovieResult {
   video?: boolean;
   mediaInfo?: MediaInfo;
 }
+
+// Add a type for media types
+export type MediaType = 'movie' | 'tv' | 'person';
+
+// Add this interface to better type the media types
+export interface MediaTypeInfo {
+  icon: string;
+  label: string;
+}
+
+export const MEDIA_TYPE_MAP: Record<MediaType, MediaTypeInfo> = {
+  movie: { icon: '🎬', label: 'Movie' },
+  tv: { icon: '📺', label: 'TV Show' },
+  person: { icon: '👤', label: 'Person' }
+};
 
 export interface MediaInfo {
   id: number;
@@ -108,4 +124,80 @@ export interface RootFolder {
 export interface ServerTestResponse {
   profiles: ServerProfile[];
   rootFolders: RootFolder[];
+}
+
+export interface TVShowSeason {
+  id: number;
+  airDate: string;
+  episodeCount: number;
+  name: string;
+  overview: string;
+  posterPath: string;
+  seasonNumber: number;
+}
+
+export interface TVShowDetails {
+  id: number;
+  name: string;
+  seasons: TVShowSeason[];
+  // ... other fields as needed
+}
+
+export interface DetailedTVShowInfo {
+  episodeRunTime: number[];
+  numberOfEpisodes: number;
+  numberOfSeasons: number; // Fix: Changed from numberOfSeason
+  inProduction: boolean;
+  status: string;
+  contentRatings?: {
+    results: Array<{
+      iso_3166_1: string;
+      rating: string;
+    }>;
+  };
+  networks: Array<{
+    id: number;
+    name: string;
+    logoPath: string;
+  }>;
+  lastEpisodeToAir?: {
+    airDate: string;
+    episodeNumber: number;
+    seasonNumber: number;
+    name: string;
+  };
+  nextEpisodeToAir?: {
+    airDate: string;
+    episodeNumber: number;
+    seasonNumber: number;
+    name: string;
+  };
+  seasons: Array<{
+    id: number;
+    name: string;
+    episodeCount: number;
+    seasonNumber: number;
+    airDate?: string;
+  }>;
+  genres: Array<{
+    id: number;
+    name: string;
+  }>;
+}
+
+export interface PersonDetails {
+  id: number;
+  name: string;
+  deathday?: string;
+  knownForDepartment?: string;
+  alsoKnownAs?: string[];
+  gender?: string;
+  biography?: string;
+  popularity?: string;
+  placeOfBirth?: string;
+  profilePath?: string;
+  adult?: boolean;
+  imdbId?: string;
+  homepage?: string;
+  birthday?: string;
 }

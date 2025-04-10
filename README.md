@@ -8,5 +8,4 @@ Future features to add:
 - add integration for plex info to open in plex
 - add integration to open external radarr/sonarr link
 - add editing request options
-
 - look into adding plex integration to add to watchlist :)
