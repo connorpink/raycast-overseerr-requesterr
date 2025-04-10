@@ -12,8 +12,8 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
   const [settings, setSettings] = useState<RadarrSettings[]>([]);
   const [serverDetails, setServerDetails] = useState<ServerTestResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const settingsEndpoint = movie.mediaType === 'movie' ? 'radarr' : 'sonarr';
+
+  const settingsEndpoint = movie.mediaType === "movie" ? "radarr" : "sonarr";
 
   useEffect(() => {
     async function fetchSettings() {
@@ -21,10 +21,10 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
         const response = await fetch(`${apiUrl}/settings/${settingsEndpoint}`, {
           headers: {
             "X-Api-Key": apiKey,
-            "accept": "application/json",
+            accept: "application/json",
           },
         });
-        
+
         if (!response.ok) throw new Error("Failed to fetch settings");
         const data = await response.json();
         setSettings(data);
@@ -32,7 +32,7 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
         // Get server details directly without user selection
         if (data.length > 0) {
           const testResponse = await fetch(`${apiUrl}/settings/${settingsEndpoint}/test`, {
-            method: 'POST',
+            method: "POST",
             headers: {
               "X-Api-Key": apiKey,
               "Content-Type": "application/json",
@@ -42,15 +42,16 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
               port: data[0].port,
               apiKey: data[0].apiKey,
               useSsl: data[0].useSsl,
-              baseUrl: data[0].baseUrl
-            })
+              baseUrl: data[0].baseUrl,
+            }),
           });
-          
+
           if (!testResponse.ok) throw new Error("Failed to fetch server details");
           const serverData = await testResponse.json();
           setServerDetails(serverData);
         }
-      } catch (error) {
+      } catch (err) {
+        console.error("Settings fetch error:", err);
         await showToast({
           style: Toast.Style.Failure,
           title: "Error",
@@ -64,11 +65,7 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
     fetchSettings();
   }, [apiUrl, apiKey, settingsEndpoint]);
 
-  async function handleSubmit(values: { 
-    profile: string;
-    rootFolder: string;
-    tag: string;
-  }) {
+  async function handleSubmit(values: { profile: string; rootFolder: string; tag: string }) {
     try {
       const response = await fetch(`${apiUrl}/request`, {
         method: "POST",
@@ -82,7 +79,7 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
           serverId: settings[0]?.id, // Use first server automatically
           profileId: parseInt(values.profile),
           rootFolder: values.rootFolder,
-          tags: values.tag ? [values.tag] : []
+          tags: values.tag ? [values.tag] : [],
         }),
       });
 
@@ -93,7 +90,8 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
         title: "Request Submitted",
         message: `Successfully requested ${movie.title || movie.name}`,
       });
-    } catch (error) {
+    } catch (err) {
+      console.error("Request submission error:", err);
       await showToast({
         style: Toast.Style.Failure,
         title: "Error",
@@ -116,29 +114,17 @@ export function RequestForm({ movie }: { movie: MovieResult }) {
     >
       <Form.Dropdown id="profile" title="Quality Profile" defaultValue={serverDetails?.profiles[0]?.id.toString()}>
         {serverDetails?.profiles.map((profile) => (
-          <Form.Dropdown.Item 
-            key={profile.id} 
-            value={profile.id.toString()} 
-            title={profile.name} 
-          />
+          <Form.Dropdown.Item key={profile.id} value={profile.id.toString()} title={profile.name} />
         ))}
       </Form.Dropdown>
 
       <Form.Dropdown id="rootFolder" title="Root Folder" defaultValue={serverDetails?.rootFolders[0]?.path}>
         {serverDetails?.rootFolders.map((folder) => (
-          <Form.Dropdown.Item 
-            key={folder.id} 
-            value={folder.path} 
-            title={folder.path} 
-          />
+          <Form.Dropdown.Item key={folder.id} value={folder.path} title={folder.path} />
         ))}
       </Form.Dropdown>
 
-      <Form.TextField
-        id="tag"
-        title="Tag"
-        placeholder="Add an optional tag for this request..."
-      />
+      <Form.TextField id="tag" title="Tag" placeholder="Add an optional tag for this request..." />
     </Form>
   );
 }

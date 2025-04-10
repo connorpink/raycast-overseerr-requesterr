@@ -1,4 +1,4 @@
-import { ActionPanel, Action, List, showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { ActionPanel, Action, List, getPreferenceValues } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { MovieDetail } from "./components/MovieDetail";
@@ -23,14 +23,14 @@ export default function Command() {
   const [searchText, setSearchText] = useState("");
 
   // Determine which URL to use based on searchText
-  const fetchUrl = searchText 
+  const fetchUrl = searchText
     ? `${apiUrl.replace(/\/$/, "")}/search?query=${encodeURIComponent(searchText)}&page=1&language=en`
     : `${apiUrl.replace(/\/$/, "")}/discover/movies?page=1&language=en&sortBy=popularity.desc`;
 
   const { isLoading, data } = useFetch<SearchResponse>(fetchUrl, {
     headers: {
       "X-Api-Key": apiKey,
-      "accept": "application/json",
+      accept: "application/json",
     },
     parseResponse: (response) => response.json(),
   });
@@ -45,77 +45,63 @@ export default function Command() {
       searchBarPlaceholder="Search movies or browse trending..."
       throttle
     >
-      <List.Section title={searchText ? "Search Results" : "Discover Movies"} subtitle={data?.results?.length.toString() ?? "0"}>
-        {data?.results?.map((movie) => (
-          <MovieListItem key={movie.id} movie={movie} />
-        )) || []}
+      <List.Section
+        title={searchText ? "Search Results" : "Discover Movies"}
+        subtitle={data?.results?.length.toString() ?? "0"}
+      >
+        {data?.results?.map((movie) => <MovieListItem key={movie.id} movie={movie} />) || []}
       </List.Section>
     </List>
   );
 }
 
 function MovieListItem({ movie }: { movie: MovieResult }) {
-  const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
-  
-  // Get the appropriate title and release date based on media type
   const title = movie.title || movie.name || "Unknown Title";
   const releaseDate = movie.releaseDate || movie.firstAirDate || "";
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
-  
+
   // Format vote average with null check
-  const rating = typeof movie.voteAverage === 'number' ? `⭐ ${movie.voteAverage.toFixed(1)}` : '';
+  const rating = typeof movie.voteAverage === "number" ? `⭐ ${movie.voteAverage.toFixed(1)}` : "";
 
   // Create poster URLs for different sizes
-  const posterUrlSmall = movie.posterPath 
-    ? `https://image.tmdb.org/t/p/w154${movie.posterPath}`
-    : null;
-  
-  const posterUrlLarge = movie.posterPath 
-    ? `https://image.tmdb.org/t/p/w342${movie.posterPath}`
-    : null;
+  const posterUrlSmall = movie.posterPath ? `https://image.tmdb.org/t/p/w154${movie.posterPath}` : null;
 
-  // Format additional details with null check for popularity
-  const details = [
-    year && `Released: ${year}`,
-    rating && `Rating: ${rating}`,
-    typeof movie.popularity === 'number' && `Popularity: ${movie.popularity.toFixed(1)}`,
-    movie.mediaType && `Type: ${movie.mediaType.toUpperCase()}`
-  ].filter(Boolean).join(' • ');
+  const posterUrlLarge = movie.posterPath ? `https://image.tmdb.org/t/p/w342${movie.posterPath}` : null;
 
   // Update the getStatusIndicator function
   const getStatusIndicator = (mediaInfo?: MediaInfo) => {
-    if (!mediaInfo) return '';
-    
+    if (!mediaInfo) return "";
+
     // Handle all status cases
     switch (mediaInfo.status) {
       case 1:
-        return '❓'; // Unknown
+        return "❓"; // Unknown
       case 2:
-        return '📝'; // Requested
+        return "📝"; // Requested
       case 3:
-        return '⏳'; // Pending
+        return "⏳"; // Pending
       case 4:
-        return '⚡'; // Partially Available
+        return "⚡"; // Partially Available
       case 5:
-        return '✅'; // Available
+        return "✅"; // Available
       default:
-        return '';
+        return "";
     }
   };
 
   const requestStatus = getStatusIndicator(movie.mediaInfo);
-  
+
   // Get media type display
   const mediaTypeDisplay = (() => {
     switch (movie.mediaType?.toLowerCase()) {
-      case 'movie':
-        return '🎬 Movie';
-      case 'tv':
-        return '📺 TV Show';
-      case 'person':
-        return '👤 Person';
+      case "movie":
+        return "🎬 Movie";
+      case "tv":
+        return "📺 TV Show";
+      case "person":
+        return "👤 Person";
       default:
-        return movie.mediaType ? `📌 ${movie.mediaType}` : 'Unknown';
+        return movie.mediaType ? `📌 ${movie.mediaType}` : "Unknown";
     }
   })();
 
@@ -123,8 +109,8 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
     { text: year ? year.toString() : "" },
     { text: rating },
     { text: mediaTypeDisplay },
-    { text: requestStatus }
-  ].filter(acc => acc.text !== "");
+    { text: requestStatus },
+  ].filter((acc) => acc.text !== "");
 
   // Add this function to check if media is already requested or available
   const isMediaRequested = (mediaInfo?: MediaInfo) => {
@@ -148,9 +134,9 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
               <List.Item.Detail.Metadata.Label title="Rating" text={rating} />
               <List.Item.Detail.Metadata.Label title="Media Type" text={mediaTypeDisplay} />
               <List.Item.Detail.Metadata.Label title="Status" text={requestStatus} />
-              <List.Item.Detail.Metadata.Label 
-                title="Popularity" 
-                text={typeof movie.popularity === 'number' ? movie.popularity.toFixed(1) : 'N/A'} 
+              <List.Item.Detail.Metadata.Label
+                title="Popularity"
+                text={typeof movie.popularity === "number" ? movie.popularity.toFixed(1) : "N/A"}
               />
               <List.Item.Detail.Metadata.Separator />
               <List.Item.Detail.Metadata.Label title="Overview" text={movie.overview || "No overview available"} />
@@ -181,4 +167,3 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
     />
   );
 }
-

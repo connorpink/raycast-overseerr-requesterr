@@ -1,11 +1,7 @@
-import { Detail, ActionPanel, Action, showToast, Toast, getPreferenceValues } from "@raycast/api";
+import { Detail, ActionPanel, Action } from "@raycast/api";
+// Remove showToast and Toast from imports since they're not used
 import { MovieResult } from "../types";
 import { RequestForm } from "./RequestForm";
-
-interface Preferences {
-  apiUrl: string;
-  apiKey: string;
-}
 
 const getStatusBadge = (status?: number) => {
   switch (status) {
@@ -42,15 +38,12 @@ const isMediaRequested = (mediaInfo?: MediaInfo) => {
 };
 
 export function MovieDetail({ movie }: { movie: MovieResult }) {
-  const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
   const title = movie.title || movie.name || "Unknown Title";
   const releaseDate = movie.releaseDate || movie.firstAirDate || "";
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
-  const rating = typeof movie.voteAverage === 'number' ? `⭐ ${movie.voteAverage.toFixed(1)}` : '';
-  
-  const posterUrl = movie.posterPath 
-    ? `https://image.tmdb.org/t/p/w780${movie.posterPath}`  
-    : null;
+  const rating = typeof movie.voteAverage === "number" ? `⭐ ${movie.voteAverage.toFixed(1)}` : "";
+
+  const posterUrl = movie.posterPath ? `https://image.tmdb.org/t/p/w780${movie.posterPath}` : null;
 
   const markdown = posterUrl ? `![${title}](${posterUrl})` : "";
 
@@ -66,10 +59,7 @@ export function MovieDetail({ movie }: { movie: MovieResult }) {
       actions={
         <ActionPanel>
           {!isMediaRequested(movie.mediaInfo) && (
-            <Action.Push
-              title="Request Media"
-              target={<RequestForm movie={movie} />}
-            />
+            <Action.Push title="Request Media" target={<RequestForm movie={movie} />} />
           )}
         </ActionPanel>
       }
@@ -89,63 +79,34 @@ export function MovieDetail({ movie }: { movie: MovieResult }) {
           {downloadStatus && (
             <>
               <Detail.Metadata.Separator />
-              
-              <Detail.Metadata.Label 
-                title="Download Title" 
-                text={downloadStatus.title} 
+
+              <Detail.Metadata.Label title="Download Title" text={downloadStatus.title} />
+              <Detail.Metadata.Label title="Status" text={downloadStatus.status.toUpperCase()} />
+              <Detail.Metadata.Label
+                title="Progress"
+                text={`${((1 - downloadStatus.sizeLeft / downloadStatus.size) * 100).toFixed(1)}%`}
               />
-              <Detail.Metadata.Label 
-                title="Status" 
-                text={downloadStatus.status.toUpperCase()} 
-              />
-              <Detail.Metadata.Label 
-                title="Progress" 
-                text={`${((1 - (downloadStatus.sizeLeft / downloadStatus.size)) * 100).toFixed(1)}%`} 
-              />
-              <Detail.Metadata.Label 
-                title="Size" 
-                text={formatBytes(downloadStatus.size)} 
-              />
-              <Detail.Metadata.Label 
-                title="Remaining" 
-                text={formatBytes(downloadStatus.sizeLeft)} 
-              />
-              <Detail.Metadata.Label 
-                title="Time Left" 
-                text={downloadStatus.timeLeft} 
-              />
-              <Detail.Metadata.Label 
-                title="Estimated Completion" 
-                text={new Date(downloadStatus.estimatedCompletionTime).toLocaleString()} 
+              <Detail.Metadata.Label title="Size" text={formatBytes(downloadStatus.size)} />
+              <Detail.Metadata.Label title="Remaining" text={formatBytes(downloadStatus.sizeLeft)} />
+              <Detail.Metadata.Label title="Time Left" text={downloadStatus.timeLeft} />
+              <Detail.Metadata.Label
+                title="Estimated Completion"
+                text={new Date(downloadStatus.estimatedCompletionTime).toLocaleString()}
               />
             </>
           )}
 
           <Detail.Metadata.Separator />
-          
+
           <Detail.Metadata.Label title="Title" text={title} />
-          {releaseDate && (
-            <Detail.Metadata.Label title="Release Date" text={releaseDate} />
-          )}
-          <Detail.Metadata.Label 
-            title="Popularity" 
-            text={movie.popularity?.toFixed(1) || "N/A"} 
-          />
-          <Detail.Metadata.Label 
-            title="Vote Count" 
-            text={movie.voteCount?.toString() || "0"} 
-          />
-          <Detail.Metadata.Label 
-            title="Language" 
-            text={movie.originalLanguage?.toUpperCase() || "Unknown"} 
-          />
-          
+          {releaseDate && <Detail.Metadata.Label title="Release Date" text={releaseDate} />}
+          <Detail.Metadata.Label title="Popularity" text={movie.popularity?.toFixed(1) || "N/A"} />
+          <Detail.Metadata.Label title="Vote Count" text={movie.voteCount?.toString() || "0"} />
+          <Detail.Metadata.Label title="Language" text={movie.originalLanguage?.toUpperCase() || "Unknown"} />
+
           <Detail.Metadata.Separator />
-          
-          <Detail.Metadata.Label 
-            title="Overview" 
-            text={movie.overview || "No overview available"} 
-          />
+
+          <Detail.Metadata.Label title="Overview" text={movie.overview || "No overview available"} />
         </Detail.Metadata>
       }
     />

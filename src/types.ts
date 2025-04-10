@@ -81,7 +81,14 @@ export interface ServerProfile {
   name: string;
   id: number;
   upgradeAllowed: boolean;
-  items: Array<any>; // You can type this more specifically if needed
+  items: Array<{
+    name?: string;
+    quality?: {
+      id: number;
+      name: string;
+    };
+    allowed: boolean;
+  }>;
 }
 
 export interface RootFolder {
