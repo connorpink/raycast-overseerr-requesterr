@@ -25,9 +25,18 @@ export interface MediaInfo {
   tmdbId: number;
   tvdbId: number;
   status: number;
+  status4k?: number;
   requests: Request[];
   createdAt: string;
   updatedAt: string;
+  downloadStatus?: Array<{
+    title: string;
+    status: string;
+    size: number;
+    sizeLeft: number;
+    timeLeft: string;
+    estimatedCompletionTime: string;
+  }>;
 }
 
 export interface Request {

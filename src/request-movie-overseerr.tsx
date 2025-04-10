@@ -3,8 +3,7 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { MovieDetail } from "./components/MovieDetail";
 import { RequestForm } from "./components/RequestForm";
-import { MovieResult } from "../types";
-import { MediaInfo } from "../types";
+import { MovieResult, MediaInfo } from "./types";
 
 interface Preferences {
   apiUrl: string;
@@ -120,12 +119,13 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
 
   return (
     <List.Item
-      icon={posterUrlSmall}
+      icon={{ source: posterUrlSmall || "" }}
       title={title}
       subtitle={movie.overview || "No overview available"}
       accessories={accessories}
       detail={
         <List.Item.Detail
+          markdown={posterUrlLarge ? `![${title}](${posterUrlLarge})` : ""}
           metadata={
             <List.Item.Detail.Metadata>
               <List.Item.Detail.Metadata.Label title="Title" text={title} />
@@ -142,9 +142,7 @@ function MovieListItem({ movie }: { movie: MovieResult }) {
               <List.Item.Detail.Metadata.Label title="Overview" text={movie.overview || "No overview available"} />
             </List.Item.Detail.Metadata>
           }
-        >
-          {posterUrlLarge && <List.Item.Detail.Image source={posterUrlLarge} />}
-        </List.Item.Detail>
+        />
       }
       actions={
         <ActionPanel>

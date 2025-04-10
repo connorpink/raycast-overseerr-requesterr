@@ -1,7 +1,19 @@
 import { Detail, ActionPanel, Action } from "@raycast/api";
-// Remove showToast and Toast from imports since they're not used
-import { MovieResult } from "../types";
+import { MovieResult, MediaInfo } from "../types"; // Add MediaInfo import
 import { RequestForm } from "./RequestForm";
+
+// Update MediaInfo interface to include missing properties
+interface ExtendedMediaInfo extends MediaInfo {
+  status4k?: number;
+  downloadStatus?: Array<{
+    title: string;
+    status: string;
+    size: number;
+    sizeLeft: number;
+    timeLeft: string;
+    estimatedCompletionTime: string;
+  }>;
+}
 
 const getStatusBadge = (status?: number) => {
   switch (status) {
@@ -32,7 +44,7 @@ const formatBytes = (bytes?: number) => {
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 };
 
-const isMediaRequested = (mediaInfo?: MediaInfo) => {
+const isMediaRequested = (mediaInfo?: ExtendedMediaInfo) => {
   if (!mediaInfo) return false;
   return [2, 3, 4, 5].includes(mediaInfo.status);
 };
@@ -47,7 +59,7 @@ export function MovieDetail({ movie }: { movie: MovieResult }) {
 
   const markdown = posterUrl ? `![${title}](${posterUrl})` : "";
 
-  const mediaInfo = movie.mediaInfo;
+  const mediaInfo = movie.mediaInfo as ExtendedMediaInfo;
   const downloadStatus = mediaInfo?.downloadStatus?.[0];
   const status = getStatusBadge(mediaInfo?.status);
   const status4k = getStatusBadge(mediaInfo?.status4k);
