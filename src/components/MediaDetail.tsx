@@ -1,4 +1,4 @@
-import { Detail, ActionPanel, Action, environment, getPreferenceValues } from "@raycast/api";
+import { Detail, ActionPanel, Action, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
 import { MediaResult, DetailedTVShowInfo, PersonDetails, Preferences, ExtendedMediaInfo } from "../types"; 
 import { MediaRequestForm } from "./MediaRequestForm";
@@ -26,11 +26,6 @@ export function MediaDetail({ media }: { media: MediaResult }) {
             }
           );
           const data = await response.json();
-          if (environment.isDevelopment) {
-            console.log('TV Show API Response:', JSON.stringify(data, null, 2));
-            console.log('Number of Seasons:', data.numberOfSeasons);
-            console.log('Watch Providers:', data.watchProviders);
-          }
           setTvDetails(data);
         } else if (media.mediaType === "person") {
           const response = await fetch(

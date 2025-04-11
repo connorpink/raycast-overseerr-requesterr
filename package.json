@@ -12,7 +12,7 @@
   "commands": [
     {
       "name": "media-browser",
-      "title": "Request Movie Overseerr",
+      "title": "Overseerr Requester",
       "subtitle": "Request a movie on the Overseerr instance",
       "description": "Using overseerr instance api search and request movies/shows and allow adding a request",
       "mode": "view",
