@@ -1,44 +1,8 @@
 import { Detail, ActionPanel, Action, environment, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
-import { MediaResult, MediaInfo, DetailedTVShowInfo, PersonDetails } from "../types"; // Add PersonDetails import
+import { MediaResult, DetailedTVShowInfo, PersonDetails, Preferences, ExtendedMediaInfo } from "../types"; 
 import { MediaRequestForm } from "./MediaRequestForm";
-import { normalizeApiUrl, getMediaStatusBadge } from "../utils";
-
-// Update MediaInfo interface to include missing properties
-interface ExtendedMediaInfo extends MediaInfo {
-  status4k?: number;
-  downloadStatus?: Array<{
-    title: string;
-    status: string;
-    size: number;
-    sizeLeft: number;
-    timeLeft: string;
-    estimatedCompletionTime: string;
-  }>;
-}
-
-interface Preferences {
-  apiUrl: string;
-  apiKey: string;
-}
-
-
-const formatBytes = (bytes?: number) => {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(2)} ${units[unitIndex]}`;
-};
-
-const isMediaRequested = (mediaInfo?: ExtendedMediaInfo) => {
-  if (!mediaInfo) return false;
-  return [2, 3, 4, 5].includes(mediaInfo.status);
-};
+import { normalizeApiUrl, getMediaStatusBadge, formatBytes, isMediaRequested} from "../utils";
 
 export function MediaDetail({ media }: { media: MediaResult }) {
   const [tvDetails, setTvDetails] = useState<DetailedTVShowInfo | null>(null);
@@ -62,7 +26,6 @@ export function MediaDetail({ media }: { media: MediaResult }) {
             }
           );
           const data = await response.json();
-          // Add debug logging
           if (environment.isDevelopment) {
             console.log('TV Show API Response:', JSON.stringify(data, null, 2));
             console.log('Number of Seasons:', data.numberOfSeasons);

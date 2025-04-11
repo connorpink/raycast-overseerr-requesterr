@@ -1,11 +1,6 @@
 import { Form, ActionPanel, Action, showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
-import { MediaResult, RadarrSettings, ServerTestResponse, TVShowSeason, TVShowDetails } from "../types";
-
-interface Preferences {
-  apiUrl: string;
-  apiKey: string;
-}
+import { MediaResult, RadarrSettings, ServerTestResponse, TVShowSeason, TVShowDetails, Preferences } from "../types";
 
 export function MediaRequestForm({ media }: { media: MediaResult }) {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
@@ -143,7 +138,7 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
       await showToast({
         style: Toast.Style.Failure,
         title: "Error",
-        message: `Failed to submit request: ${err.message}`,
+        message: `Failed to submit request: ${err instanceof Error ? err.message : 'Unknown error'}`,
       });
     }
   }

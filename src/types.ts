@@ -1,9 +1,10 @@
-// Rename MovieResult to MediaResult
+
 export interface MediaResult {
   id: number;
   mediaType: string;
   popularity: number;
   posterPath: string;
+  profilePath?: string;
   backdropPath: string;
   voteCount: number;
   voteAverage: number;
@@ -24,7 +25,7 @@ export interface MediaResult {
 // Add a type for media types
 export type MediaType = 'movie' | 'tv' | 'person';
 
-// Add this interface to better type the media types
+
 export interface MediaTypeInfo {
   icon: string;
   label: string;
@@ -55,6 +56,10 @@ export interface MediaInfo {
   }>;
 }
 
+export interface Preferences {
+  apiUrl: string;
+  apiKey: string;
+}
 export interface Request {
   id: number;
   status: number;
@@ -200,4 +205,16 @@ export interface PersonDetails {
   imdbId?: string;
   homepage?: string;
   birthday?: string;
+}
+
+export interface ExtendedMediaInfo extends MediaInfo {
+  status4k?: number;
+  downloadStatus?: Array<{
+    title: string;
+    status: string;
+    size: number;
+    sizeLeft: number;
+    timeLeft: string;
+    estimatedCompletionTime: string;
+  }>;
 }

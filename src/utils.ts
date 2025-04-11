@@ -1,4 +1,5 @@
-// Add to types.ts or create a new utils.ts file
+import { MediaResult, MediaType, MediaInfo, MEDIA_TYPE_MAP } from "./types";
+
 export const getMediaStatusBadge = (status?: number) => {
   switch (status) {
     case 1:
@@ -18,8 +19,14 @@ export const getMediaStatusBadge = (status?: number) => {
 
 export const getMediaTypeInfo = (mediaType: string) => {
   const type = mediaType?.toLowerCase() as MediaType;
-  return MEDIA_TYPE_MAP[type] || { icon: '📌', label: mediaType || 'Unknown' };
+  return MEDIA_TYPE_MAP[type] || { icon: "📌", label: mediaType || "Unknown" };
 };
+
+// Add this function to check if media is already requested or available
+export const isMediaRequested = (mediaInfo?: MediaInfo) => {
+    if (!mediaInfo) return false;
+    return [2, 3, 4, 5].includes(mediaInfo.status);
+  };
 
 export const isRequestable = (media: MediaResult) => {
   return media.mediaType !== "person" && !isMediaRequested(media.mediaInfo);
@@ -30,8 +37,31 @@ export const isRequestable = (media: MediaResult) => {
  * and adding /api/v1 if not present
  */
 export const normalizeApiUrl = (url: string): string => {
-  // Remove trailing slash
   const cleanUrl = url.replace(/\/$/, "");
-  // Add /api/v1 if not present
   return cleanUrl.includes("/api/v1") ? cleanUrl : `${cleanUrl}/api/v1`;
+};
+
+export const formatBytes = (bytes?: number) => {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(2)} ${units[unitIndex]}`;
+};
+
+export const getMediaTypeDisplay = (mediaType?: string): string => {
+  switch (mediaType?.toLowerCase()) {
+    case "movie":
+      return "🎬 Movie";
+    case "tv":
+      return "📺 TV Show";
+    case "person":
+      return "👤 Person";
+    default:
+      return mediaType ? `📌 ${mediaType}` : "Unknown";
+  }
 };

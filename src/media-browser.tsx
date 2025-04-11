@@ -3,8 +3,8 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { MediaDetail } from "./components/MediaDetail";
 import { MediaRequestForm } from "./components/MediaRequestForm";
-import { MediaResult, MediaInfo } from "./types";
-import { getMediaStatusBadge, normalizeApiUrl } from "./utils";
+import { MediaResult } from "./types";
+import { getMediaStatusBadge, normalizeApiUrl, isMediaRequested, getMediaTypeDisplay } from "./utils";
 
 interface Preferences {
   apiUrl: string;
@@ -74,18 +74,7 @@ function MediaListItem({ media }: { media: MediaResult }) {
   const requestStatus = getMediaStatusBadge(media.mediaInfo?.status);
 
   // Get media type display
-  const mediaTypeDisplay = (() => {
-    switch (media.mediaType?.toLowerCase()) {
-      case "movie":
-        return "🎬 Movie";
-      case "tv":
-        return "📺 TV Show";
-      case "person":
-        return "👤 Person";
-      default:
-        return media.mediaType ? `📌 ${media.mediaType}` : "Unknown";
-    }
-  })();
+  const mediaTypeDisplay = getMediaTypeDisplay(media.mediaType);
 
   const accessories = [
     { text: year ? year.toString() : "" },
@@ -93,12 +82,6 @@ function MediaListItem({ media }: { media: MediaResult }) {
     { text: mediaTypeDisplay },
     { text: requestStatus.icon },
   ].filter((acc) => acc.text !== "");
-
-  // Add this function to check if media is already requested or available
-  const isMediaRequested = (mediaInfo?: MediaInfo) => {
-    if (!mediaInfo) return false;
-    return [2, 3, 4, 5].includes(mediaInfo.status);
-  };
 
   return (
     <List.Item
