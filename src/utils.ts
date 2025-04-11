@@ -38,8 +38,8 @@ export const getMediaTypeInfo = (mediaType: string) => {
  * @returns Boolean indicating if media is requested/available
  */
 export const isMediaRequested = (mediaInfo?: MediaInfo) => {
-    if (!mediaInfo) return false;
-    return [2, 3, 4, 5].includes(mediaInfo.status);
+  if (!mediaInfo) return false;
+  return [2, 3, 4, 5].includes(mediaInfo.status);
 };
 
 /**

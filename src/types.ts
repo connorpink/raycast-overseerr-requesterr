@@ -28,7 +28,7 @@ export interface MediaResult {
 /**
  * Valid media types supported by the application
  */
-export type MediaType = 'movie' | 'tv' | 'person';
+export type MediaType = "movie" | "tv" | "person";
 
 /**
  * Display information for different media types including icons
@@ -42,9 +42,9 @@ export interface MediaTypeInfo {
  * Mapping of media types to their display information
  */
 export const MEDIA_TYPE_MAP: Record<MediaType, MediaTypeInfo> = {
-  movie: { icon: '🎬', label: 'Movie' },
-  tv: { icon: '📺', label: 'TV Show' },
-  person: { icon: '👤', label: 'Person' }
+  movie: { icon: "🎬", label: "Movie" },
+  tv: { icon: "📺", label: "TV Show" },
+  person: { icon: "👤", label: "Person" },
 };
 
 /**

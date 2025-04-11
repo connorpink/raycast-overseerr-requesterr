@@ -157,7 +157,7 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
       await showToast({
         style: Toast.Style.Failure,
         title: "Error",
-        message: `Failed to submit request: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: `Failed to submit request: ${err instanceof Error ? err.message : "Unknown error"}`,
       });
     }
   }
