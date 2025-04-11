@@ -1,17 +1,28 @@
 import { Form, ActionPanel, Action, showToast, Toast, getPreferenceValues } from "@raycast/api";
 import { useState, useEffect } from "react";
-import { MediaResult, RadarrSettings, ServerTestResponse, TVShowSeason, TVShowDetails, Preferences } from "../types";
+import { MediaResult, ArrSettings, ServerTestResponse, TVShowSeason, TVShowDetails, Preferences } from "../types";
 
+/**
+ * Form component for submitting media requests to Radarr/Sonarr
+ * Handles both movie and TV show requests with different options for each
+ * @param media - Media result object containing details about the item to request
+ * @returns React component for media request form
+ */
 export function MediaRequestForm({ media }: { media: MediaResult }) {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
-  const [settings, setSettings] = useState<RadarrSettings[]>([]);
+  const [settings, setSettings] = useState<ArrSettings[]>([]);
   const [serverDetails, setServerDetails] = useState<ServerTestResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [seasons, setSeasons] = useState<TVShowSeason[]>([]);
   const [selectedSeasons, setSelectedSeasons] = useState<number[]>([]);
 
+  // Determine which service to use based on media type
   const settingsEndpoint = media.mediaType === "movie" ? "radarr" : "sonarr";
 
+  /**
+   * Fetches server settings and details from Radarr/Sonarr
+   * Gets quality profiles and root folders for request configuration
+   */
   useEffect(() => {
     async function fetchSettings() {
       try {
@@ -62,6 +73,10 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
     fetchSettings();
   }, [apiUrl, apiKey, settingsEndpoint]);
 
+  /**
+   * Fetches additional details for TV shows including season information
+   * Only runs when the media type is 'tv'
+   */
   useEffect(() => {
     async function fetchTVShowDetails() {
       if (media.mediaType !== "tv") return;
@@ -85,6 +100,10 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
     fetchTVShowDetails();
   }, [media.id, media.mediaType, apiUrl, apiKey]);
 
+  /**
+   * Handles form submission and sends request to the API
+   * @param values - Form values including profile, rootFolder, and tag
+   */
   async function handleSubmit(values: { profile: string; rootFolder: string; tag: string }) {
     try {
       console.log("Submitting request with data:", {
@@ -143,10 +162,16 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
     }
   }
 
+  /**
+   * Handles season selection changes in the tag picker
+   * Converts string array of season numbers to integers
+   * @param seasonNumbers - Array of selected season numbers as strings
+   */
   const handleSeasonChange = (seasonNumbers: string[]) => {
     setSelectedSeasons(seasonNumbers.map((n) => parseInt(n)));
   };
 
+  // Show loading state while fetching initial data
   if (isLoading) {
     return <Form isLoading={true} />;
   }
@@ -159,18 +184,21 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
         </ActionPanel>
       }
     >
+      {/* Quality Profile Selection */}
       <Form.Dropdown id="profile" title="Quality Profile" defaultValue={serverDetails?.profiles[0]?.id.toString()}>
         {serverDetails?.profiles.map((profile) => (
           <Form.Dropdown.Item key={profile.id} value={profile.id.toString()} title={profile.name} />
         ))}
       </Form.Dropdown>
 
+      {/* Root Folder Selection */}
       <Form.Dropdown id="rootFolder" title="Root Folder" defaultValue={serverDetails?.rootFolders[0]?.path}>
         {serverDetails?.rootFolders.map((folder) => (
           <Form.Dropdown.Item key={folder.id} value={folder.path} title={folder.path} />
         ))}
       </Form.Dropdown>
 
+      {/* Season Selection for TV Shows */}
       {media.mediaType === "tv" && seasons.length > 0 && (
         <Form.TagPicker
           id="seasons"
@@ -188,6 +216,7 @@ export function MediaRequestForm({ media }: { media: MediaResult }) {
         </Form.TagPicker>
       )}
 
+      {/* Optional Tag Field */}
       <Form.TextField id="tag" title="Tag" placeholder="Add an optional tag for this request..." />
     </Form>
   );

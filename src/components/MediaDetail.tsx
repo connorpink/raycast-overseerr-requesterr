@@ -4,6 +4,12 @@ import { MediaResult, DetailedTVShowInfo, PersonDetails, Preferences, ExtendedMe
 import { MediaRequestForm } from "./MediaRequestForm";
 import { normalizeApiUrl, getMediaStatusBadge, formatBytes, isMediaRequested} from "../utils";
 
+/**
+ * Detailed view component for media items
+ * Shows comprehensive information about movies, TV shows, or people
+ * @param media - Media result object containing item details
+ * @returns React component for detailed media information display
+ */
 export function MediaDetail({ media }: { media: MediaResult }) {
   const [tvDetails, setTvDetails] = useState<DetailedTVShowInfo | null>(null);
   const [personDetails, setPersonDetails] = useState<PersonDetails | null>(null);
@@ -11,6 +17,10 @@ export function MediaDetail({ media }: { media: MediaResult }) {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
   const baseApiUrl = normalizeApiUrl(apiUrl);
 
+  /**
+   * Fetches additional details for TV shows and people
+   * Makes API calls to get extended information based on media type
+   */
   useEffect(() => {
     const fetchDetails = async () => {
       setIsLoading(true);
@@ -50,18 +60,24 @@ export function MediaDetail({ media }: { media: MediaResult }) {
     fetchDetails();
   }, [media.id, baseApiUrl]);
 
+  // Extract and format basic media information
   const title = media.mediaType === "person" 
     ? media.name 
     : (media.title || media.name || "Unknown Title");
   const imagePath = media.mediaType === "person" ? media.profilePath : media.posterPath;
   const imageUrl = imagePath ? `https://image.tmdb.org/t/p/w342${imagePath}` : null;
 
+  /**
+   * Constructs markdown content for the detail view
+   * Includes image, biography for persons, and season info for TV shows
+   */
   const markdown = imageUrl ? `![${title}](${imageUrl})
 ${media.mediaType === "person" && personDetails?.biography ? `\n## Biography\n${personDetails.biography}` : ""}
 ${media.mediaType === "tv" && tvDetails ? `\n## Seasons\n${tvDetails.seasons?.map(season => 
   `- ${season.name} (${season.episodeCount} episodes${season.airDate ? ` - ${new Date(season.airDate).getFullYear()}` : ''})`
 ).join('\n')}` : ""}` : "";
 
+  // Get media status information
   const mediaInfo = media.mediaInfo as ExtendedMediaInfo;
   const downloadStatus = mediaInfo?.downloadStatus?.[0];
   const status = getMediaStatusBadge(mediaInfo?.status);
@@ -81,6 +97,7 @@ ${media.mediaType === "tv" && tvDetails ? `\n## Seasons\n${tvDetails.seasons?.ma
       }
       metadata={
         <Detail.Metadata>
+          {/* Person-specific metadata display */}
           {media.mediaType === "person" ? (
             <>
               <Detail.Metadata.TagList title="Quick Info">
@@ -159,6 +176,7 @@ ${media.mediaType === "tv" && tvDetails ? `\n## Seasons\n${tvDetails.seasons?.ma
             </>
           ) : (
             <>
+              {/* Media-specific metadata display */}
               <Detail.Metadata.TagList title="Quick Info">
                 <Detail.Metadata.TagList.Item text={media.mediaType.toUpperCase()} color="purple" />
                 {typeof media.voteAverage === "number" && (

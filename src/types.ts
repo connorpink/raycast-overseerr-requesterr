@@ -1,4 +1,7 @@
-
+/**
+ * Represents a media item from the API (movie, TV show, or person)
+ * Contains basic information about the media including metadata and status
+ */
 export interface MediaResult {
   id: number;
   mediaType: string;
@@ -22,21 +25,31 @@ export interface MediaResult {
   mediaInfo?: MediaInfo;
 }
 
-// Add a type for media types
+/**
+ * Valid media types supported by the application
+ */
 export type MediaType = 'movie' | 'tv' | 'person';
 
-
+/**
+ * Display information for different media types including icons
+ */
 export interface MediaTypeInfo {
   icon: string;
   label: string;
 }
 
+/**
+ * Mapping of media types to their display information
+ */
 export const MEDIA_TYPE_MAP: Record<MediaType, MediaTypeInfo> = {
   movie: { icon: '🎬', label: 'Movie' },
   tv: { icon: '📺', label: 'TV Show' },
   person: { icon: '👤', label: 'Person' }
 };
 
+/**
+ * Information about media status and download progress
+ */
 export interface MediaInfo {
   id: number;
   tmdbId: number;
@@ -56,10 +69,17 @@ export interface MediaInfo {
   }>;
 }
 
+/**
+ * Application preferences/settings
+ */
 export interface Preferences {
   apiUrl: string;
   apiKey: string;
 }
+
+/**
+ * Represents a media request made by a user
+ */
 export interface Request {
   id: number;
   status: number;
@@ -74,6 +94,9 @@ export interface Request {
   rootFolder: string;
 }
 
+/**
+ * User information and permissions
+ */
 export interface User {
   id: number;
   email: string;
@@ -88,7 +111,10 @@ export interface User {
   requestCount: number;
 }
 
-export interface RadarrSettings {
+/**
+ * Configuration for Radarr/Sonarr servers
+ */
+export interface ArrSettings {
   id: number;
   name: string;
   hostname: string;
@@ -107,6 +133,9 @@ export interface RadarrSettings {
   preventSearch: boolean;
 }
 
+/**
+ * Quality profile configuration for media downloads
+ */
 export interface ServerProfile {
   name: string;
   id: number;
@@ -121,16 +150,25 @@ export interface ServerProfile {
   }>;
 }
 
+/**
+ * Root folder configuration for media storage
+ */
 export interface RootFolder {
   id: number;
   path: string;
 }
 
+/**
+ * Server test response containing profiles and folders
+ */
 export interface ServerTestResponse {
   profiles: ServerProfile[];
   rootFolders: RootFolder[];
 }
 
+/**
+ * Information about a TV show season
+ */
 export interface TVShowSeason {
   id: number;
   airDate: string;
@@ -141,17 +179,22 @@ export interface TVShowSeason {
   seasonNumber: number;
 }
 
+/**
+ * Basic TV show information including seasons
+ */
 export interface TVShowDetails {
   id: number;
   name: string;
   seasons: TVShowSeason[];
-  // ... other fields as needed
 }
 
+/**
+ * Comprehensive TV show information including runtime and ratings
+ */
 export interface DetailedTVShowInfo {
   episodeRunTime: number[];
   numberOfEpisodes: number;
-  numberOfSeasons: number; // Fix: Changed from numberOfSeason
+  numberOfSeasons: number;
   inProduction: boolean;
   status: string;
   contentRatings?: {
@@ -190,6 +233,9 @@ export interface DetailedTVShowInfo {
   }>;
 }
 
+/**
+ * Detailed information about a person (actor, director, etc.)
+ */
 export interface PersonDetails {
   id: number;
   name: string;
@@ -207,6 +253,9 @@ export interface PersonDetails {
   birthday?: string;
 }
 
+/**
+ * Extended media information including 4K status and download progress
+ */
 export interface ExtendedMediaInfo extends MediaInfo {
   status4k?: number;
   downloadStatus?: Array<{
@@ -217,4 +266,14 @@ export interface ExtendedMediaInfo extends MediaInfo {
     timeLeft: string;
     estimatedCompletionTime: string;
   }>;
+}
+
+/**
+ * Search response containing paginated results
+ */
+export interface SearchResponse {
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  results: MediaResult[];
 }

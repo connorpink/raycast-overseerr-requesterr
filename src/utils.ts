@@ -1,5 +1,10 @@
 import { MediaResult, MediaType, MediaInfo, MEDIA_TYPE_MAP } from "./types";
 
+/**
+ * Returns badge information based on media status code
+ * @param status - Numeric status code of the media
+ * @returns Object containing badge text, color, and icon
+ */
 export const getMediaStatusBadge = (status?: number) => {
   switch (status) {
     case 1:
@@ -17,30 +22,50 @@ export const getMediaStatusBadge = (status?: number) => {
   }
 };
 
+/**
+ * Gets media type information including icon and label
+ * @param mediaType - String representing the type of media
+ * @returns Object containing icon and label for the media type
+ */
 export const getMediaTypeInfo = (mediaType: string) => {
   const type = mediaType?.toLowerCase() as MediaType;
   return MEDIA_TYPE_MAP[type] || { icon: "📌", label: mediaType || "Unknown" };
 };
 
-// Add this function to check if media is already requested or available
+/**
+ * Checks if media has already been requested or is available
+ * @param mediaInfo - Media information object containing status
+ * @returns Boolean indicating if media is requested/available
+ */
 export const isMediaRequested = (mediaInfo?: MediaInfo) => {
     if (!mediaInfo) return false;
     return [2, 3, 4, 5].includes(mediaInfo.status);
-  };
+};
 
+/**
+ * Determines if media can be requested based on type and current status
+ * @param media - Media result object
+ * @returns Boolean indicating if media is requestable
+ */
 export const isRequestable = (media: MediaResult) => {
   return media.mediaType !== "person" && !isMediaRequested(media.mediaInfo);
 };
 
 /**
- * Ensures API URL has the correct format by removing trailing slashes
- * and adding /api/v1 if not present
+ * Normalizes API URL by removing trailing slashes and ensuring /api/v1 is present
+ * @param url - Base API URL string
+ * @returns Normalized API URL string
  */
 export const normalizeApiUrl = (url: string): string => {
   const cleanUrl = url.replace(/\/$/, "");
   return cleanUrl.includes("/api/v1") ? cleanUrl : `${cleanUrl}/api/v1`;
 };
 
+/**
+ * Formats byte values into human-readable sizes with appropriate units
+ * @param bytes - Number of bytes to format
+ * @returns Formatted string with appropriate size unit
+ */
 export const formatBytes = (bytes?: number) => {
   if (!bytes) return "0 B";
   const units = ["B", "KB", "MB", "GB"];
@@ -53,6 +78,11 @@ export const formatBytes = (bytes?: number) => {
   return `${size.toFixed(2)} ${units[unitIndex]}`;
 };
 
+/**
+ * Returns a formatted display string for media type with appropriate icon
+ * @param mediaType - String representing the type of media
+ * @returns Formatted string with icon and media type label
+ */
 export const getMediaTypeDisplay = (mediaType?: string): string => {
   switch (mediaType?.toLowerCase()) {
     case "movie":

@@ -3,21 +3,14 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { MediaDetail } from "./components/MediaDetail";
 import { MediaRequestForm } from "./components/MediaRequestForm";
-import { MediaResult } from "./types";
+import { MediaResult, SearchResponse, Preferences } from "./types";
 import { getMediaStatusBadge, normalizeApiUrl, isMediaRequested, getMediaTypeDisplay } from "./utils";
 
-interface Preferences {
-  apiUrl: string;
-  apiKey: string;
-}
-
-interface SearchResponse {
-  page: number;
-  totalPages: number;
-  totalResults: number;
-  results: MediaResult[];
-}
-
+/**
+ * Main component for browsing and searching media content
+ * Displays a searchable list of movies and TV shows with their details
+ * @returns React component for media browsing interface
+ */
 export default function MediaBrowser() {
   const { apiUrl, apiKey } = getPreferenceValues<Preferences>();
   const [searchText, setSearchText] = useState("");
@@ -37,8 +30,8 @@ export default function MediaBrowser() {
     parseResponse: (response) => response.json(),
   });
 
-  console.log("API URL:", fetchUrl);
-  console.log("Response:", data);
+  // console.log("API URL:", fetchUrl);
+  // console.log("Response:", data);
 
   return (
     <List
@@ -57,25 +50,30 @@ export default function MediaBrowser() {
   );
 }
 
+/**
+ * Component for rendering individual media items in the list
+ * Displays media details including title, year, rating, and status
+ * @param media - Media result object containing item details
+ * @returns React component for individual media list item
+ */
 function MediaListItem({ media }: { media: MediaResult }) {
+  // Extract and format basic media information
   const title = media.title || media.name || "Unknown Title";
   const releaseDate = media.releaseDate || media.firstAirDate || "";
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
-  // Format vote average with null check
+  // Format rating with null check
   const rating = typeof media.voteAverage === "number" ? `⭐ ${media.voteAverage.toFixed(1)}` : "";
 
-  // Create poster URLs for different sizes
+  // Create poster URLs for different display sizes
   const posterUrlSmall = media.posterPath ? `https://image.tmdb.org/t/p/w154${media.posterPath}` : null;
-
   const posterUrlLarge = media.posterPath ? `https://image.tmdb.org/t/p/w342${media.posterPath}` : null;
 
-  // Get media status badge
+  // Get status and type information
   const requestStatus = getMediaStatusBadge(media.mediaInfo?.status);
-
-  // Get media type display
   const mediaTypeDisplay = getMediaTypeDisplay(media.mediaType);
 
+  // Build accessories array for list item
   const accessories = [
     { text: year ? year.toString() : "" },
     { text: rating },
