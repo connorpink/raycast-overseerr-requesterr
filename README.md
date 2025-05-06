@@ -11,6 +11,32 @@ Future features to add:
 - add editing request options
 - look into adding plex integration to add to watchlist
 
+### Additional possible steps
+If your setup is comparable to mine, then you have overseerr running through docker behind a domain through npm. In which case CORS might not be enabled for your overseerr api endpoint by default. I had to put this into the advanced tab for the proxy to enable CORS:
+```
+location / {
+    proxy_pass {YOUR_IP_HERE}:{OVERSEERR_PORT};  # replace with your actual internal Docker IP or service name and port
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Api-Key $http_x_api_key;
+
+    # CORS headers
+    add_header 'Access-Control-Allow-Origin' '*' always;
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE' always;
+    add_header 'Access-Control-Allow-Headers' 'Origin, Content-Type, Accept, Authorization' always;
+    add_header 'Access-Control-Allow-Credentials' 'true' always;
+
+    # Preflight
+    if ($request_method = OPTIONS) {
+        add_header 'Access-Control-Max-Age' 1728000;
+        add_header 'Content-Type' 'text/plain; charset=UTF-8';
+        add_header 'Content-Length' 0;
+        return 204;
+    }
+}
+```
 ## Screenshots
 
 Here's a visual walkthrough of the extension in action:
